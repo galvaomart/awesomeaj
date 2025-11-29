@@ -1,5 +1,5 @@
 --==============================================================--
---  AWESOME AJ — ONE-TIME KEY LOADER (GITHUB VERSION)
+--  AWESOME AJ — GITHUB JSON KEY SYSTEM (HWID LOCK + ONE-TIME)
 --==============================================================--
 
 local HttpService = game:GetService("HttpService")
@@ -8,19 +8,18 @@ local Analytics = game:GetService("RbxAnalyticsService")
 local USER_KEY = rawget(getfenv(), "script_key") or ""
 local HWID = Analytics:GetClientId()
 
--- YOUR PYTHON API (still must be online)
-local SERVER = "http://YOUR_PUBLIC_IP:5000/validate"
-
--- Your publicly hosted AutoJoiner file:
+-- GitHub links
+local KEYS_URL = "https://raw.githubusercontent.com/YOURNAME/YOURREPO/main/keys.json"
 local AUTOJOINER_URL = "https://raw.githubusercontent.com/YOURNAME/YOURREPO/main/autojoiner.lua"
 
---==============================================================--
---  LOCAL KEY SAVE (ONE-TIME ENTRY)
---==============================================================--
-
+-- Local key save
 local SAVE_NAME = "AJ_KEY_" .. tostring(HWID)
 
-local function loadSavedKey()
+--==============================================================--
+--  Load saved key (one-time system)
+--==============================================================--
+
+local function loadSaved()
     if isfile and isfile(SAVE_NAME) then
         return readfile(SAVE_NAME)
     end
@@ -32,50 +31,47 @@ local function saveKey(k)
     end
 end
 
--- Pick key: saved > user input
-local KEY = loadSavedKey() or USER_KEY
+-- Pick saved > user-entered
+local KEY = loadSaved() or USER_KEY
 
 if KEY == "" then
-    warn("[AwesomeAJ] ❌ No key found (saved or entered).")
+    warn("[AwesomeAJ] ❌ No key provided.")
     return
 end
 
 --==============================================================--
---  VALIDATE KEY
+--  Fetch keys.json from GitHub
 --==============================================================--
 
-local payload = HttpService:JSONEncode({
-    key = KEY,
-    hwid = HWID,
-    client = "lua"
-})
+local raw = game:HttpGet(KEYS_URL)
+local keys = HttpService:JSONDecode(raw)
 
-local function validate()
-    local res
+local entry = keys[KEY]
 
-    local ok, err = pcall(function()
-        res = game:HttpPost(SERVER, payload)
-    end)
+if not entry then
+    warn("[AwesomeAJ] ❌ Invalid key.")
+    return
+end
 
-    if not ok then
-        warn("[AwesomeAJ] ❌ Server error:", err)
-        return false
+-- Bind HWID if empty
+if entry.hwid == "" then
+    entry.hwid = HWID
+    print("[AwesomeAJ] 🔒 HWID Bound")
+else
+    -- Must match stored HWID
+    if entry.hwid ~= HWID then
+        warn("[AwesomeAJ] ❌ HWID mismatch.")
+        return
     end
-
-    local data = HttpService:JSONDecode(res)
-    return data.valid == true
 end
 
-if not validate() then
-    warn("[AwesomeAJ] ❌ Invalid key or HWID mismatch.")
-    return
-end
-
-print("[AwesomeAJ] ✅ Key Valid — Loading Script...")
+-- Save one-time key
 saveKey(KEY)
 
+print("[AwesomeAJ] ✅ Key Validated!")
+
 --==============================================================--
---  LOAD AUTOJOINER FROM GITHUB
+--  LOAD AUTO JOINER
 --==============================================================--
 
 local src = game:HttpGet(AUTOJOINER_URL)
@@ -84,5 +80,5 @@ local fn = loadstring(src)
 if fn then
     fn()
 else
-    warn("[AwesomeAJ] ❌ AutoJoiner failed to load.")
+    warn("[AwesomeAJ] ❌ Failed to load AutoJoiner.")
 end

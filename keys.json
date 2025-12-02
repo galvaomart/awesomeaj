@@ -1,0 +1,13 @@
+{
+  "AJ-jvMhvmfppiLKRMT2": {
+    "discord_id": "1191374757229252720",
+    "note": "7 days",
+    "expires_at": "2025-12-30T00:00:00"
+  },
+
+  "AJ-abc123": {
+    "discord_id": "000000000000000000",
+    "note": "owner",
+    "expires_at": "2030-01-01T00:00:00"
+  }
+}

@@ -1,74 +1,65 @@
 --==============================================================--
--- AwesomeAJ • GitHub Loader (ThanHub-Style Key System)
+-- AwesomeAJ • GitHub Loader (Public)
+-- Users MUST define: script_key & discord_id BEFORE running
 --==============================================================--
 
 if not script_key or not discord_id or script_key == "" or discord_id == "" then
-    warn("[AwesomeAJ] Missing script_key or discord_id!")
+    warn("[AwesomeAJ] Missing script_key or discord_id. Set them above the loadstring!")
     return
 end
 
 local HttpService = game:GetService("HttpService")
+local hwid = game:GetService("RbxAnalyticsService"):GetClientId()
 
--- GitHub raw URLs
-local key_url = "https://raw.githubusercontent.com/galvaomart/awesomeaj-public/main/keys.json"
-local script_url = "https://raw.githubusercontent.com/galvaomart/awesomeaj-public/main/script.lua"
+local url =
+    "https://awesomeautojoiner.pythonanywhere.com/script/obl_loader"
+    .. "?key=" .. script_key
+    .. "&discord_id=" .. discord_id
+    .. "&hwid=" .. hwid
 
--- function to GET from GitHub
-local function httpget(u)
-    local req = request or http_request or syn and syn.request
+-- Supports syn.request, http_request, request, or fallback to HttpGet
+local function http_get(u)
+    local req = request or http_request or (syn and syn.request)
     if req then
         local r = req({Url = u, Method = "GET"})
-        return r.Body
+        return r.Body, r.StatusCode
     else
-        return game:HttpGet(u)
+        return game:HttpGet(u), 200
     end
 end
 
--- fetch key database
-local ok, rawKeys = pcall(function()
-    return httpget(key_url)
-end)
+local body, status = http_get(url)
 
-if not ok then
-    warn("[AwesomeAJ] Failed to download key database.")
+--==============================================================--
+-- AUTH RESULTS
+--==============================================================--
+if status ~= 200 then
+    warn("[AwesomeAJ] Authentication server error. Status:", status)
+    warn("[AwesomeAJ] Response:", body)
     return
 end
 
-local keys = {}
+if body:find("Invalid")
+or body:find("Expired")
+or body:find("HWID")
+or body:find("mismatch")
+or body:find("403")
+or body:find("<!DOCTYPE") then
 
-local success, json = pcall(function()
-    keys = HttpService:JSONDecode(rawKeys)
+    warn("[AwesomeAJ] Authentication failed: " .. body)
+    return
+end
+
+print("[AwesomeAJ] Authentication successful.")
+print("[AwesomeAJ] Loading protected script...")
+
+--==============================================================--
+-- LOAD THE PROTECTED SCRIPT RETURNED BY YOUR API
+--==============================================================--
+local success, err = pcall(function()
+    loadstring(body)()
 end)
 
 if not success then
-    warn("[AwesomeAJ] keys.json is invalid!")
-    return
+    warn("[AwesomeAJ] Fatal error inside protected script:", err)
 end
-
--- validate key
-local entry = keys[script_key]
-
-if not entry then
-    warn("[AwesomeAJ] Invalid key.")
-    return
-end
-
-if tostring(entry.discord_id) ~= tostring(discord_id) then
-    warn("[AwesomeAJ] This key does not belong to this Discord ID.")
-    return
-end
-
--- Expiry check
-local now = os.time()
-local expiry_time = os.time(DateTime.fromIsoDate(entry.expires_at):ToUniversalTime())
-
-if now > expiry_time then
-    warn("[AwesomeAJ] Key expired.")
-    return
-end
-
-print("[AwesomeAJ] Key verified. Loading script...")
-
--- download & execute real script
-local real_code = httpget(script_url)
-loadstring(real_code)()

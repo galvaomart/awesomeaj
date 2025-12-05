@@ -1,32 +1,8 @@
 {
-  "keys": {
-    "AJ-EXAMPLEKEY123": {
-      "owner_discord": "1191374757229252720",
-      "hwid": "whatthehell",
-      "note": "Lifetime",
-      "created_at": "2025-12-03T21:00:00Z",
-      "blacklisted": false
-    },
-    "AJ-LVB2hCoWyZq7aw": {
-      "owner_discord": "1191374757229252720",
-      "hwid": "AA5FD3A3-4904-4949-B2B6-3F33747BA042",
-      "note": "lifetime",
-      "created_at": "2025-12-04T21:32:09.207572+00:00",
-      "blacklisted": false
-    },
-    "AJ-HsCKYP2NBnE": {
-      "plan": "lifetime",
-      "note": "my main",
-      "hwid": "AA5FD3A3-4904-4949-B2B6-3F33747BA042",
-      "discord_id": "1191374757229252720",
-      "created_at": "2025-12-04T22:23:47.079897+00:00"
-    },
     "AJ-XFx7umyHz3Q": {
-      "plan": "lifetime",
-      "note": "Main, Dabber6741",
-      "hwid": 935E10A3-C62B-49D1-AE02-797A5B3A6C40,
-      "discord_id": "1420934018639204402",
-      "created_at": "2025-12-05T00:05:53.392487+00:00"
+        "discord": "1420934018639204402",
+        "hwid": "NONE",
+        "expires": "2025-12-20"
     }
-  }
 }
+

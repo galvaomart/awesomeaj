@@ -1,0 +1,130 @@
+-- ⚡ Awesome Joiner
+-- Simple Job ID Joiner (Steal A Brainrot)
+-- Draggable + Toggle with T
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local PLACE_ID = game.PlaceId
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "AwesomeJoiner"
+gui.ResetOnSpawn = false
+gui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromScale(0.3, 0.2)
+frame.Position = UDim2.fromScale(0.35, 0.4)
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+
+-- Top bar (yellow accent)
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.fromScale(1, 0.18)
+topBar.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+topBar.BorderSizePixel = 0
+topBar.Parent = frame
+
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 14)
+
+-- Fix bottom corners
+local mask = Instance.new("Frame")
+mask.Size = UDim2.fromScale(1, 0.5)
+mask.Position = UDim2.fromScale(0, 0.18)
+mask.BackgroundColor3 = frame.BackgroundColor3
+mask.BorderSizePixel = 0
+mask.Parent = frame
+
+-- Title (drag handle)
+local title = Instance.new("TextLabel")
+title.Size = UDim2.fromScale(1, 1)
+title.BackgroundTransparency = 1
+title.Text = "⚡ Awesome Joiner"
+title.TextColor3 = Color3.fromRGB(0, 0, 0)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Parent = topBar
+
+-- Job ID box
+local box = Instance.new("TextBox")
+box.Size = UDim2.fromScale(0.9, 0.28)
+box.Position = UDim2.fromScale(0.05, 0.3)
+box.PlaceholderText = "Paste Job ID here"
+box.Text = ""
+box.ClearTextOnFocus = false
+box.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+box.TextColor3 = Color3.fromRGB(255, 255, 255)
+box.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+box.Font = Enum.Font.Gotham
+box.TextSize = 14
+box.BorderSizePixel = 0
+box.Parent = frame
+
+Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
+
+-- Join button
+local button = Instance.new("TextButton")
+button.Size = UDim2.fromScale(0.9, 0.25)
+button.Position = UDim2.fromScale(0.05, 0.65)
+button.Text = "JOIN SERVER"
+button.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+button.TextColor3 = Color3.fromRGB(0, 0, 0)
+button.Font = Enum.Font.GothamBold
+button.TextSize = 14
+button.BorderSizePixel = 0
+button.Parent = frame
+
+Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+
+-- Join logic
+button.MouseButton1Click:Connect(function()
+    local jobId = box.Text
+    if jobId ~= "" then
+        TeleportService:TeleportToPlaceInstance(PLACE_ID, jobId, player)
+    end
+end)
+
+-- Draggable (top bar)
+do
+    local dragging, dragStart, startPos
+
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+
+    topBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- Toggle with T
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.T then
+        frame.Visible = not frame.Visible
+    end
+end)
